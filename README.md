@@ -533,6 +533,11 @@ iptables -A INPUT -j REJECT
 **testing node lain ping ke hdd**
 <img src="./img/misi2/no3-kedua.png" />
 
+**pake netcat**
+<img src='./img/misi2/no3-ketiga.png' />
+<img src='./img/misi2/no3-keempat.png' />
+<img src='./img/misi2/no3-kelima.png' />
+
 ---
 
 4. RULE: HollowZero hanya bisa diakses oleh 4 node dan hanya di hari Senin hingga Jumat
