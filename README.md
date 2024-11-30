@@ -660,3 +660,19 @@ Untuk melakukan verifikasi di HollowZero bisa dengan menggunakan tcpdump seperti
 **testing**
 <img src='./img/misi2/no8-pertama.png' />
 <img src='./img/misi2/no8-kedua.png' />
+
+# Misi 3
+
+1. RULE: memblokir semua transmisi masuk maupun keluar dari Burnice bisa memanipulasi policy iptables
+
+### Burnice
+
+```bash
+iptables --policy INPUT DROP
+iptables --policy OUTPUT DROP
+iptables --policy FORWARD DROP
+```
+
+**testing**
+<img src='./img/misi3/no1-pertama.png' />
+<img src='./img/misi3/no1-kedua.png' />
