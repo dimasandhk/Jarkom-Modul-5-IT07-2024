@@ -534,3 +534,96 @@ iptables -A INPUT -j REJECT
 <img src="./img/misi2/no3-kedua.png" />
 
 ---
+
+4. RULE: HollowZero hanya bisa diakses oleh 4 node dan hanya di hari Senin hingga Jumat
+
+### HollowZero
+
+```bash
+iptables -A INPUT -p tcp -s 10.67.2.130 --dport 80 -m time --timestart 00:00 --timestop 23:59 --weekdays Mon,Tue,Wed,Thu,Fri -j ACCEPT
+
+iptables -A INPUT -p tcp -s 10.67.2.131 --dport 80 -m time --timestart 00:00 --timestop 23:59 --weekdays Mon,Tue,Wed,Thu,Fri -j ACCEPT
+
+iptables -A INPUT -p tcp -s 10.67.1.3 --dport 80 -m time --timestart 00:00 --timestop 23:59 --weekdays Mon,Tue,Wed,Thu,Fri -j ACCEPT
+
+iptables -A INPUT -p tcp -s 10.67.1.2 --dport 80 -m time --timestart 00:00 --timestop 23:59 --weekdays Mon,Tue,Wed,Thu,Fri -j ACCEPT
+
+iptables -A INPUT -p tcp --dport 80 -j REJECT
+```
+
+saat pengetesan ip burnice = 10.67.2.130<br>
+saat pengetesan ip caesar = 10.67.2.131<br>
+saat pengetesan ip jane = 10.67.1.3<br>
+saat pengetesan ip policeboo = 10.67.1.2
+
+**test**
+<img src="./img/misi2/no4-pertama.png" />
+
+---
+
+5. RULE: HIA hanya bisa diakses oleh Ellen dan Lycaon pada pukul 08:00 - 21:00 dan bisa diakses oleh Jane serta Policeboo hanya pada pukul 03:00 - 23:00
+
+### HIA
+
+```bash
+# Akses Node Ellen dan Lycaon (08:00 - 21:00)
+iptables -A INPUT -p tcp -s 10.67.2.2 --dport 80 -m time --timestart 01:00 --timestop 14:00 --weekdays Mon,Tue,Wed,Thu,Fri,Sat,Sun -j ACCEPT
+
+iptables -A INPUT -p tcp -s 10.67.2.3 --dport 80 -m time --timestart 01:00 --timestop 14:00 --weekdays Mon,Tue,Wed,Thu,Fri,Sat,Sun -j ACCEPT
+
+# Akses Node Jane dan Policeboo (03:00 - 23:00)
+iptables -A INPUT -p tcp -s 10.67.1.3 --dport 80 -m time --timestart 20:00 --timestop 16:00 --weekdays Mon,Tue,Wed,Thu,Fri,Sat,Sun -j ACCEPT
+
+iptables -A INPUT -p tcp -s 10.67.1.2 --dport 80 -m time --timestart 20:00 --timestop 16:00 --weekdays Mon,Tue,Wed,Thu,Fri,Sat,Sun -j ACCEPT
+
+# Tolak semua koneksi lainnya
+iptables -A INPUT -p tcp --dport 80 -j REJECT
+```
+
+ip ellen saat pengetesan = 10.67.2.2<br>
+ip lycaon saat pengetesan = 10.67.2.3<br>
+ip jane saat pengetesan = 10.67.1.3<br>
+ip policeboo saat pengetesan = 10.67.1.2
+
+> Catatan: Karena konfigurasi iptables menggunakan format waktu UTC atau GMT 0, maka waktu harus disesuaikan dengan permintaan soal dan perbedaan waktunya (WIB = GMT +7)
+
+**tes**
+<img src="./img/misi2/no5-pertama.png" />
+<img src="./img/misi2/no5-kedua.png" />
+
+---
+
+6. RULE: HIA harus memblokir aktivitas port scanning yang melebihi 25 port dalam rentang 10 detik, penyerang yang diblokir tidak bisa ping, nc, atau curl ke HIA, log dari iptables akan tercatat untuk analisis.
+
+```bash
+# Atur rate limit untuk port scanning (maksimum 25 koneksi per 10 detik)
+iptables -N PORTSCAN
+iptables -A INPUT -p tcp --dport 1:100 -m state --state NEW -m recent --set --name portscan
+iptables -A INPUT -p tcp --dport 1:100 -m state --state NEW -m recent --update --seconds 10 --hitcount 25 --name portscan -j PORTSCAN
+
+# Blokir IP yang terdeteksi melakukan port scanning tidak wajar
+iptables -A PORTSCAN -m recent --set --name blacklist
+iptables -A PORTSCAN -j DROP
+
+# Blokir semua aktivitas dari IP yang ada di daftar blacklist
+iptables -A INPUT -m recent --name blacklist --rcheck -j REJECT
+iptables -A OUTPUT -m recent --name blacklist --rcheck -j REJECT
+
+# Logging untuk port scanning
+iptables -A PORTSCAN -j LOG --log-prefix='PORT SCAN DETECTED' --log-level 4
+```
+
+Test scan port dengan nmap: `nmap -p 1-100 10.67.2.194`
+
+**testing**
+<img src="./img/misi2/no6-pertama.png" />
+<img src="./img/misi2/no6-kedua.png" />
+
+---
+
+<img src="./img/misi2/no6-ketiga.png" />
+<img src="./img/misi2/no6-keempat.png" />
+
+---
+
+7.
