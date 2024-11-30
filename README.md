@@ -626,4 +626,37 @@ Test scan port dengan nmap: `nmap -p 1-100 10.67.2.194`
 
 ---
 
-7.
+7. RULE: Untuk hollow hanya ada 2 koneksi aktif dari 2 IP berbeda dalam waktu bersamaan yang diperbolehkan
+
+### HollowZero
+
+```bash
+# Hanya izinkan maksimal 2 koneksi aktif dari 2 IP berbeda
+iptables -A INPUT -p tcp --dport 80 -m conntrack --ctstate NEW -m recent --set
+iptables -A INPUT -p tcp --dport 80 -m conntrack --ctstate NEW -m recent --update --seconds 1 --hitcount 3 -j REJECT
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT
+```
+
+Test dengan `parallel curl -s http://IP-HollowZero ::: IP-Caesar IP-Burnice IP-Jane IP-Policeboo`
+
+`parallel curl -s http://10.67.2.226 ::: 10.67.2.131 10.67.2.130 10.67.1.2 10.67.1.3`
+
+**testing**
+<img src='./img/misi2/no7-pertama.png' />
+
+---
+
+8. Agar setiap paket yang dikirimkan ke Burnice dapat dialihkan ke HollowZero
+
+### Burnice
+
+```bash
+iptables -t nat -A PREROUTING -p tcp -j DNAT --to-destination 10.67.2.226 --dport 3030
+iptables -A FORWARD -p tcp -d 10.67.2.226 -j ACCEPT
+```
+
+Untuk melakukan verifikasi di HollowZero bisa dengan menggunakan tcpdump seperti ini `tcpdump -i eth0 host 10.67.2.211 and port 3030`
+
+**testing**
+<img src='./img/misi2/no8-pertama.png' />
+<img src='./img/misi2/no8-kedua.png' />
